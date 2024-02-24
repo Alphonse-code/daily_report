@@ -5,7 +5,9 @@ from email.mime.base import MIMEBase
 from email import encoders
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
+load_dotenv()
 def find_file_with_today_date(directory):
     today = datetime.now().strftime('%Y-%m-%d')
     target_filename = f"pizza_sales_{today}.xlsx"
@@ -16,23 +18,38 @@ def find_file_with_today_date(directory):
 
 def send_daily_report(file_to_send):
     # Email server details
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    smtp_username = 'votre_email@gmail.com'
-    smtp_password = 'votre_mot_de_passe'
-    
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = os.getenv('SMTP_PORT')
+    smtp_username = os.getenv('SMTP_USERNAME')
+    smtp_password = os.getenv('SMTP_PASSWORD')
+
     # Email content
     from_addr = smtp_username
-    to_addr = 'votre_email@gmail.com'
+    to_addr = os.getenv('TO_ADDR')
     subject = 'Daily Report'
-    body = 'This is the content of the daily report.'
+    
+    # HTML body content
+    html_body = """
+    <html>
+      <head></head>
+      <body>
+        <p>Bonjour !<br>
+           Voici le <b>rapport de vente de pizzas</b> pour aujourd'hui.<br>
+           Veuillez trouver le rapport en pièce jointe.
+        </p>
+      </body>
+    </html>
+    """
     
     # Setup email
-    msg = MIMEMultipart()
+    msg = MIMEMultipart('alternative')
     msg['From'] = from_addr
     msg['To'] = to_addr
     msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+    
+    # Attach HTML content
+    part2 = MIMEText(html_body, 'html')
+    msg.attach(part2)
     
     # Attaching the file
     if file_to_send:
@@ -54,7 +71,7 @@ def send_daily_report(file_to_send):
     print("Email sent!")
 
 if __name__ == '__main__':
-    directory = 'E:/KETRIKA/script_py/data'  
+    directory = 'E:\KETRIKA\daily_report\data'  # /chemin/vers/votre/dossier
     file_to_send = find_file_with_today_date(directory)
     if file_to_send:
         send_daily_report(file_to_send)
